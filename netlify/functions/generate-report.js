@@ -1,43 +1,32 @@
-import fetch from 'node-fetch';
-
 export const handler = async (event) => {
   if (event.httpMethod !== 'POST') {
     return { statusCode: 405, body: 'Method Not Allowed' };
   }
 
   try {
-    const body = JSON.parse(event.body);
-    const { userInfo, total, engineScores, bottleneck } = body;
+    const { userInfo, total, engineScores, bottleneck } = JSON.parse(event.body);
     const geminiApiKey = process.env.GEMINI_API_KEY;
 
     if (!geminiApiKey) {
       return { 
         statusCode: 500, 
-        body: JSON.stringify({ error: "GEMINI_API_KEY bulunamadı." }) 
+        body: JSON.stringify({ error: "API Anahtarı (GEMINI_API_KEY) Netlify panelinde eksik kanka!" }) 
       };
     }
 
     const prompt = `
-      Sen METRIQ360 markasının "Kıdemli Büyüme Mühendisi"sin. 
-      Müşteri: ${userInfo.name} ${userInfo.surname} | Sektör: ${userInfo.sector}
+      Sen METRIQ360'ın sert ve samimi (kanka tonunda) kıdemli büyüme mühendisisin.
+      Müşteri: ${userInfo.name} | Sektör: ${userInfo.sector}
       Skor: ${total}/100 | Darboğaz: ${bottleneck}
       
-      Skorlar (25 üzerinden): 
-      Trafik: ${engineScores[1]}, 
-      Lead: ${engineScores[2]}, 
-      Satış: ${engineScores[3]}, 
-      Değer: ${engineScores[4]}
-
-      TALİMATLAR:
-      1. Raporu METRIQ360'ın sert, net ve kanka tonunda yaz.
-      2. "Kanka, senin asıl sızıntın ${bottleneck} tarafında..." diye gir.
-      3. Bu skorla neden para kaybettiğini ve ölçeklenemediğini tokat gibi yüzüne vur.
-      4. Çözüm için +90 537 948 48 68 numarasından randevu alması gerektiğini söyle.
+      TALİMAT:
+      1. Raporu sert ve tokat gibi bir gerçeklikle yaz. 
+      2. "Kanka, senin dükkanın asıl sızıntısı ${bottleneck} tarafında..." diye gir.
+      3. Çözüm için +90 537 948 48 68 numarasından randevu alması gerektiğini belirt.
     `;
 
-    const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${geminiApiKey}`;
-
-    const response = await fetch(geminiUrl, {
+    // Modern Node.js (18+) kullandığımız için dışarıdan kütüphaneye (node-fetch) gerek yok, global fetch kullanıyoruz.
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${geminiApiKey}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -46,7 +35,7 @@ export const handler = async (event) => {
     });
 
     const result = await response.json();
-    const detailedReport = result.candidates?.[0]?.content?.parts?.[0]?.text || "Rapor oluşturulamadı kanka.";
+    const detailedReport = result.candidates?.[0]?.content?.parts?.[0]?.text || "AI şu an meşgul, ama skorun belli kanka!";
 
     return {
       statusCode: 200,
@@ -56,7 +45,7 @@ export const handler = async (event) => {
   } catch (error) {
     return { 
       statusCode: 500, 
-      body: JSON.stringify({ error: "İç hata", message: error.message }) 
+      body: JSON.stringify({ error: "Fonksiyon çöktü", message: error.message }) 
     };
   }
 };
