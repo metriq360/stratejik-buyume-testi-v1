@@ -2,43 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Bu üç satır Tailwind CSS'i projenize dahil eder. */
-
-/* Genel font ve arkaplan ayarları */
 body {
   margin: 0;
-  font-family: 'Inter', sans-serif; /* Inter fontunu kullanmak için */
-  background: #f3f4f6; /* Hafif gri arkaplan */
-  padding: 0; /* Tailwind zaten boşlukları yönetecek */
-  color: #1a202c; /* Koyu gri metin rengi */
-}
-
-/* Tailwind dışı elementler için temel stil ayarlamaları (eğer gerekliyse) */
-h1, h2, h3 {
-  color: #2d3748;
-  margin-bottom: 10px; /* Tailwind sınıflarıyla yönetilebilir */
-}
-
-input, select, textarea, button {
-  /* Font size, padding, margin gibi temel stilleri Tailwind sınıflarıyla yönetmek daha iyi olur. */
-  /* Ancak genel bir başlangıç noktası için burada bırakıyorum. */
-  font-size: 16px;
-  padding: 10px;
-  margin: 8px 0;
-  border-radius: 6px;
-  border: 1px solid #cbd5e0;
-  width: 100%;
-  box-sizing: border-box;
-}
-
-button {
-  background-color: #ff6600; /* Metriq360 turuncu rengi */
-  color: white;
-  border: none;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-}
-
-button:hover {
-  background-color: #e65c00; /* Hover rengi */
+  background-color: #0f172a;
 }
