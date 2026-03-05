@@ -1,12 +1,10 @@
 export const handler = async (event) => {
-  // CORS Ayarları: Tarayıcıyı sakinleştirelim
   const headers = {
     "Access-Control-Allow-Origin": "*",
     "Access-Control-Allow-Headers": "Content-Type",
     "Access-Control-Allow-Methods": "POST, OPTIONS",
   };
 
-  // Tarayıcı "OPTIONS" isteği atarsa (Pre-flight) "OK" ver ve geç
   if (event.httpMethod === "OPTIONS") {
     return { statusCode: 200, headers, body: "" };
   }
@@ -24,42 +22,43 @@ export const handler = async (event) => {
       return { 
         statusCode: 500, 
         headers,
-        body: JSON.stringify({ error: "GEMINI_API_KEY Netlify panelinde eksik kanka!" }) 
+        body: JSON.stringify({ error: "API anahtarı Netlify panelinde eksik kanka!" }) 
       };
     }
 
-    const prompt = `
-      Sen METRIQ360 markasının kıdemli büyüme mühendisisin.
+    // Sistem talimatı ve kullanıcı verilerini ayırıyoruz (Gemini 2.5 standartı)
+    const systemPrompt = "Sen METRIQ360 markasının kıdemli büyüme mühendisisin. Sert, dürüst ve kanka tonunda konuşursun. İşletme sahiplerine gerçekleri tokat gibi çarparsın.";
+    const userQuery = `
       Müşteri: ${userInfo.name} ${userInfo.surname} | Sektör: ${userInfo.sector}
-      Skor: ${total}/100 | Darboğaz Bölgesi: ${bottleneck}
+      Skor: ${total}/100 | Ana Darboğaz: ${bottleneck}
       
-      Detaylı Skorlar (25 üzerinden): 
+      Skor Detayları: 
       Trafik: ${engineScores[1]}, Lead: ${engineScores[2]}, Satış: ${engineScores[3]}, Değer: ${engineScores[4]}
 
-      TALİMATLAR:
-      1. Raporu METRIQ360'ın sert, dürüst ve kanka tonunda yaz.
-      2. "Kanka, senin dükkanın asıl sızıntısı ${bottleneck} tarafında..." diyerek gerçekleri yüzüne vur.
-      3. Bu skorlarla neden para kaybettiğini anlat.
-      4. Çözüm için +90 537 948 48 68 numarasından randevu alması gerektiğini belirt.
+      Lütfen bu verilere dayanarak, işletmenin neden para kaybettiğini anlatan ve +90 537 948 48 68 numarasından randevu almasını söyleyen sert bir rapor yaz.
     `;
 
-    // Yerel (native) fetch kullanımı (Node 18+)
+    // Gemini API Çağrısı (Model: gemini-2.5-flash-preview-09-2025)
     const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${geminiApiKey}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        contents: [{ parts: [{ text: prompt }] }]
+        contents: [{ parts: [{ text: userQuery }] }],
+        systemInstruction: { parts: [{ text: systemPrompt }] }
       })
     });
 
     const result = await response.json();
 
     if (!response.ok) {
-      console.error("Gemini API Hata Detayı:", result);
-      return { statusCode: response.status, headers, body: JSON.stringify({ error: "AI motoru patladı", details: result }) };
+      return { 
+        statusCode: response.status, 
+        headers, 
+        body: JSON.stringify({ error: "AI motoru patladı", details: result }) 
+      };
     }
 
-    const detailedReport = result.candidates?.[0]?.content?.parts?.[0]?.text || "Analiz şu an yapılamıyor kanka, skorun yukarıda.";
+    const detailedReport = result.candidates?.[0]?.content?.parts?.[0]?.text || "Analiz yapılamadı kanka.";
 
     return {
       statusCode: 200,
@@ -67,7 +66,6 @@ export const handler = async (event) => {
       body: JSON.stringify({ detailedReport })
     };
   } catch (error) {
-    console.error("Fonksiyon Hatası:", error.message);
     return { 
       statusCode: 500, 
       headers,
