@@ -107,33 +107,37 @@ export default function App() {
     setReportLoading(true);
 
     try {
-      const baseUrl = window.location.origin;
-      const reportRes = await fetch(`${baseUrl}/.netlify/functions/generate-report`, {
+      // Netlify Functions için en güvenli çağırma yöntemi
+      const reportRes = await fetch('/.netlify/functions/generate-report', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userInfo: user, ...scoreData })
       });
 
+      if (!reportRes.ok) {
+        const errJson = await reportRes.json();
+        throw new Error(errJson.error || "Sunucu raporu oluşturamadı.");
+      }
+
       const data = await reportRes.json();
-      if (!reportRes.ok) throw new Error(data.error || "Rapor hatası.");
-      
       setReportData(data.detailedReport);
 
       setEmailStatus('Raporunuz hazırlanıyor...');
-      await fetch(`${baseUrl}/.netlify/functions/send-email`, {
+      await fetch('/.netlify/functions/send-email', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userInfo: user, report: data.detailedReport, results: scoreData })
       });
       setEmailStatus('Rapor e-postanıza gönderildi!');
     } catch (err) {
-      setError(`Sistem Hatası: ${err.message}`);
+      console.error("İşlem Hatası:", err);
+      setError(`Hata Oluştu: ${err.message}`);
     } finally {
       setReportLoading(false);
     }
   };
 
-  if (initLoading) return <div className="min-h-screen bg-slate-900 flex items-center justify-center text-orange-500 font-black animate-pulse">METRIQ360 YÜKLENİYOR...</div>;
+  if (initLoading) return <div className="min-h-screen bg-slate-900 flex items-center justify-center text-orange-500 font-black animate-pulse uppercase tracking-widest">METRIQ360 YÜKLENİYOR...</div>;
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col items-center py-10 px-4 font-sans text-slate-900">
@@ -149,7 +153,7 @@ export default function App() {
           <div className="p-8 pt-4 space-y-6">
             <div className="bg-orange-50 p-6 rounded-3xl border border-orange-100 text-center">
               <h2 className="text-xl font-black text-orange-900 uppercase italic mb-2">Büyüme Röntgeni Başlıyor</h2>
-              <p className="text-sm text-orange-800 font-medium">Büyüme motorunuzdaki tıkanıklıkları tespit etmek için bilgilerinizi giriniz.</p>
+              <p className="text-sm text-orange-800 font-medium leading-relaxed">Büyüme motorunuzdaki tıkanıklıkları tespit etmek için bilgilerinizi giriniz.</p>
             </div>
             <form onSubmit={handleUserFormSubmit} className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
