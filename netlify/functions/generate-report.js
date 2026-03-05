@@ -1,14 +1,12 @@
-import fetch from 'node-fetch';
-
+// Dışarıdan 'node-fetch' import etmiyoruz, Node 18+ içindeki yerel fetch'i kullanıyoruz.
 export const handler = async (event) => {
-  // CORS Ayarları: Tarayıcıyı sakinleştirelim
   const headers = {
     "Access-Control-Allow-Origin": "*",
     "Access-Control-Allow-Headers": "Content-Type",
     "Access-Control-Allow-Methods": "POST, OPTIONS",
   };
 
-  // Tarayıcı "OPTIONS" isteği atarsa (Pre-flight) "OK" ver ve geç
+  // Pre-flight isteği (OPTIONS) tarayıcı tarafından otomatik atılır, buna OK dememiz şart.
   if (event.httpMethod === "OPTIONS") {
     return { statusCode: 200, headers, body: "" };
   }
@@ -18,30 +16,30 @@ export const handler = async (event) => {
   }
 
   try {
-    const { userInfo, total, engineScores, bottleneck } = JSON.parse(event.body);
+    const data = JSON.parse(event.body);
+    const { userInfo, total, engineScores, bottleneck } = data;
     const geminiApiKey = process.env.GEMINI_API_KEY;
 
     if (!geminiApiKey) {
-      console.error("HATA: GEMINI_API_KEY eksik!");
-      return { 
-        statusCode: 500, 
-        headers,
-        body: JSON.stringify({ error: "API Anahtarı Netlify panelinde eksik kanka!" }) 
-      };
+      throw new Error("GEMINI_API_KEY ortam değişkeni Netlify üzerinde tanımlı değil.");
     }
 
     const prompt = `
-      Sen METRIQ360'ın sert ve samimi kıdemli büyüme mühendisisin.
-      Müşteri: ${userInfo.name} | Sektör: ${userInfo.sector}
-      Skor: ${total}/100 | Darboğaz: ${bottleneck}
+      Sen METRIQ360 markasının kıdemli büyüme mühendisisin.
+      Müşteri: ${userInfo.name} ${userInfo.surname} | Sektör: ${userInfo.sector}
+      Skor: ${total}/100 | Darboğaz Bölgesi: ${bottleneck}
       
-      TALİMAT:
-      1. Raporu sert ve tokat gibi bir gerçeklikle yaz. 
-      2. "Kanka, senin dükkanın asıl sızıntısı ${bottleneck} tarafında..." diye gir.
-      3. Çözüm için +90 537 948 48 68 numarasından randevu alması gerektiğini belirt.
+      Detaylı Skorlar (25 üzerinden): 
+      Trafik: ${engineScores[1]}, Lead: ${engineScores[2]}, Satış: ${engineScores[3]}, Değer: ${engineScores[4]}
+
+      TALİMATLAR:
+      1. Raporu METRIQ360'ın sert, dürüst ve kanka tonunda yaz.
+      2. "Kanka, senin dükkanın asıl sızıntısı ${bottleneck} tarafında..." diyerek gerçekleri yüzüne vur.
+      3. Bu skorlarla neden ayda binlerce lira kaybettiğini anlat.
+      4. Çözüm için +90 537 948 48 68 numarasından randevu alması gerektiğini belirt.
     `;
 
-    // Gemini API isteği
+    // Yerel (native) fetch kullanımı
     const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${geminiApiKey}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -50,14 +48,14 @@ export const handler = async (event) => {
       })
     });
 
+    const result = await response.json();
+
     if (!response.ok) {
-      const errorData = await response.json();
-      console.error("Gemini API Hatası:", errorData);
-      return { statusCode: 500, headers, body: JSON.stringify({ error: "Gemini API patladı", details: errorData }) };
+      console.error("Gemini API Hata Detayı:", result);
+      throw new Error(`Gemini API hatası: ${response.status}`);
     }
 
-    const result = await response.json();
-    const detailedReport = result.candidates?.[0]?.content?.parts?.[0]?.text || "AI şu an meşgul, ama skorun belli kanka!";
+    const detailedReport = result.candidates?.[0]?.content?.parts?.[0]?.text || "Analiz şu an yapılamıyor kanka, skorun yukarıda.";
 
     return {
       statusCode: 200,
@@ -65,11 +63,11 @@ export const handler = async (event) => {
       body: JSON.stringify({ detailedReport })
     };
   } catch (error) {
-    console.error("Fonksiyon İçi Kritik Hata:", error.message);
+    console.error("Fonksiyon Hatası:", error.message);
     return { 
       statusCode: 500, 
       headers,
-      body: JSON.stringify({ error: "Fonksiyon çöktü", message: error.message }) 
+      body: JSON.stringify({ error: "Sunucu içi hata", message: error.message }) 
     };
   }
 };
