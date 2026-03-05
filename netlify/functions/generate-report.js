@@ -14,21 +14,23 @@ export const handler = async (event) => {
 
     const systemPrompt = `
       Sen METRIQ360 markasının "Kıdemli Büyüme Mühendisi"sin. 
-      Persona: Otoriter, veriye dayalı konuşan, işletme sahibinin stratejik hatalarını profesyonel bir dille yüzüne çarpan bir uzmansın.
-      Dil Tonu: "Kanka" gibi aşırı lakayıt kelimelerden kaçın. Bunun yerine "Dostum", "Analizimiz gösteriyor ki" veya "Bak burası kritik" gibi daha ciddi bir ton kullan.
-      Amaç: İşletmedeki finansal sızıntıyı göstermek ve acil randevu almasını sağlamak.
+      Persona: Otoriter, stratejik, veriye dayalı konuşan bir uzmansın. 
+      ÖNEMLİ: Raporun sonuna asla "Saygılarımla", "[Adınız Soyadınız]", "İmza" gibi yer tutucular ekleme. Raporu doğrudan sonuç cümlesiyle bitir.
+      Dil Tonu: Profesyonel, ciddi ve uyarıcı. İşletme sahibinin parasının nerede yandığını açıkça göster.
     `;
 
     const userQuery = `
       Müşteri: ${userInfo.name} ${userInfo.surname} | Sektör: ${userInfo.sector}
-      Genel Skor: ${total}/100 | Ana Darboğaz: ${bottleneck}
-      Motor Skorları (25 üzerinden): Trafik: ${engineScores[1]}, Lead: ${engineScores[2]}, Satış: ${engineScores[3]}, Değer: ${engineScores[4]}
+      Skor: ${total}/100 | Ana Darboğaz: ${bottleneck}
+      Detaylı Skorlar (25 üzerinden): Trafik: ${engineScores[1]}, Lead: ${engineScores[2]}, Satış: ${engineScores[3]}, Değer: ${engineScores[4]}
 
-      RAPOR YAPISI (Markdown formatında yaz):
-      1. ## Stratejik Analiz: Skorun neden düşük olduğunu ve mobilya sektöründeki rekabette bu skorun ne anlama geldiğini anlat.
-      2. ## Darboğaz Teşhisi: ${bottleneck} tarafındaki sızıntının neden tüm büyümeyi durdurduğunu açıkla.
-      3. ## Kritik Sızıntılar: Trafik, Lead, Satış ve Değer motorlarını analiz et.
-      4. ## Sonuç: Neden acil olarak +90 537 948 48 68 numarasından randevu alması gerektiğini vurgula.
+      RAPOR İÇERİĞİ (Markdown kullan):
+      1. ## Stratejik Analiz: Bu skorun (özellikle ${userInfo.sector} sektörü için) neden tehlikeli olduğunu açıkla.
+      2. ## Darboğaz Teşhisi: ${bottleneck} bölgesindeki sızıntının neden tüm sistemi felç ettiğini anlat.
+      3. ## Motor Analizleri: Her bir motorun (Trafik, Lead, Satış, Değer) skorunu yorumla ve neden düşük olduğunu belirt.
+      4. ## Acil Eylem Çağrısı: Analiz bittiğinde, bu sızıntıyı durdurmak için tek yolun +90 537 948 48 68 numarasından randevu almak olduğunu vurgula.
+
+      DİKKAT: Raporun sonunda imza veya isim soyisim alanı bırakma. Direkt eylem çağrısıyla bitir.
     `;
 
     const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
@@ -41,7 +43,7 @@ export const handler = async (event) => {
     });
 
     const result = await response.json();
-    const detailedReport = result.candidates?.[0]?.content?.parts?.[0]?.text || "Analiz raporu hazırlanamadı.";
+    const detailedReport = result.candidates?.[0]?.content?.parts?.[0]?.text || "Analiz raporu oluşturulamadı.";
 
     return {
       statusCode: 200,
