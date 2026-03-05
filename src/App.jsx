@@ -69,7 +69,7 @@ export default function App() {
 
   const handleUserFormSubmit = (e) => {
     e.preventDefault();
-    if (!user.name || !user.surname || !user.sector || !user.email) {
+    if (!user.name || !user.surname || !user.email || !user.sector) {
       setError('Lütfen tüm alanları doldurunuz.');
       return;
     }
@@ -87,10 +87,11 @@ export default function App() {
       engineScores[q.section] += score;
       totalScore += score;
     });
-    let minVal = 26; let bId = 1;
+    let minScore = 26;
+    let bId = 1;
     Object.keys(engineScores).forEach(id => {
-      if (engineScores[id] < minVal) {
-        minVal = engineScores[id];
+      if (engineScores[id] < minScore) {
+        minScore = engineScores[id];
         bId = id;
       }
     });
@@ -99,7 +100,11 @@ export default function App() {
 
   const handleSubmitQuiz = async () => {
     const allAnswered = allQuestions.every(q => answers[q.id]);
-    if (!allAnswered) { setError('Lütfen tüm soruları yanıtlayınız.'); return; }
+    if (!allAnswered) {
+      setError('Lütfen tüm soruları yanıtlayınız.');
+      return;
+    }
+
     setError('');
     const scoreData = calculateResults();
     setResults(scoreData);
@@ -107,54 +112,65 @@ export default function App() {
     setReportLoading(true);
 
     try {
-      // Netlify Functions için en güvenli çağırma yöntemi
       const reportRes = await fetch('/.netlify/functions/generate-report', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userInfo: user, ...scoreData })
       });
 
-      if (!reportRes.ok) {
-        const errJson = await reportRes.json();
-        throw new Error(errJson.error || "Sunucu raporu oluşturamadı.");
-      }
-
+      if (!reportRes.ok) throw new Error("Rapor motoru yanıt vermedi.");
       const data = await reportRes.json();
       setReportData(data.detailedReport);
 
       setEmailStatus('Raporunuz hazırlanıyor...');
+      
+      const quizDetails = allQuestions.map(q => ({
+        question: q.text,
+        answer: answers[q.id],
+        section: engineTitles[q.section]
+      }));
+
       await fetch('/.netlify/functions/send-email', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userInfo: user, report: data.detailedReport, results: scoreData })
+        body: JSON.stringify({ 
+            userInfo: user, 
+            report: data.detailedReport, 
+            results: scoreData,
+            quizDetails: quizDetails 
+        })
       });
+      
       setEmailStatus('Rapor e-postanıza gönderildi!');
+
     } catch (err) {
-      console.error("İşlem Hatası:", err);
-      setError(`Hata Oluştu: ${err.message}`);
+      setError(`Sistem Hatası: ${err.message}`);
     } finally {
       setReportLoading(false);
     }
   };
 
-  if (initLoading) return <div className="min-h-screen bg-slate-900 flex items-center justify-center text-orange-500 font-black animate-pulse uppercase tracking-widest">METRIQ360 YÜKLENİYOR...</div>;
+  if (initLoading) return <div className="min-h-screen bg-slate-900 flex items-center justify-center text-orange-500 font-black animate-pulse">METRIQ360 YÜKLENİYOR...</div>;
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col items-center py-10 px-4 font-sans text-slate-900">
       <div className="w-full max-w-2xl bg-white rounded-[2.5rem] shadow-2xl border-t-[12px] border-orange-500 overflow-hidden">
+        
         <div className="p-8 text-center bg-white border-b">
-          <h1 className="text-4xl md:text-5xl font-black text-slate-900 tracking-tighter uppercase mb-1">METR<span className="text-orange-500">IQ</span>360</h1>
+          <h1 className="text-4xl md:text-5xl font-black text-slate-900 tracking-tighter uppercase mb-1">
+            METR<span className="text-orange-500">IQ</span>360
+          </h1>
           <p className="text-slate-400 font-bold uppercase tracking-[0.3em] text-[10px] md:text-xs">IQ360™ Stratejik Büyüme Testi</p>
         </div>
-        
-        {error && <div className="mx-8 mt-4 bg-red-50 text-red-700 p-4 rounded-2xl text-xs font-bold border-l-4 border-red-500 flex items-center gap-3"><ShieldAlert size={18} /> {error}</div>}
+
+        {error && (
+          <div className="mx-8 mt-4 bg-red-50 text-red-700 p-4 rounded-2xl text-xs font-bold border-l-4 border-red-500 flex items-center gap-3">
+            <ShieldAlert size={18} /> {error}
+          </div>
+        )}
 
         {currentStep === 'form' && (
           <div className="p-8 pt-4 space-y-6">
-            <div className="bg-orange-50 p-6 rounded-3xl border border-orange-100 text-center">
-              <h2 className="text-xl font-black text-orange-900 uppercase italic mb-2">Büyüme Röntgeni Başlıyor</h2>
-              <p className="text-sm text-orange-800 font-medium leading-relaxed">Büyüme motorunuzdaki tıkanıklıkları tespit etmek için bilgilerinizi giriniz.</p>
-            </div>
             <form onSubmit={handleUserFormSubmit} className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <input type="text" placeholder="Ad" value={user.name} onChange={(e)=>setUser({...user, name: e.target.value})} className="p-4 rounded-2xl bg-slate-50 outline-none font-bold" required />
@@ -162,7 +178,7 @@ export default function App() {
               </div>
               <input type="text" placeholder="Sektör" value={user.sector} onChange={(e)=>setUser({...user, sector: e.target.value})} className="w-full p-4 rounded-2xl bg-slate-50 outline-none font-bold" required />
               <input type="email" placeholder="E-posta" value={user.email} onChange={(e)=>setUser({...user, email: e.target.value})} className="w-full p-4 rounded-2xl bg-slate-50 outline-none font-bold" required />
-              <button type="submit" className="w-full bg-slate-900 text-white font-black py-5 rounded-2xl shadow-xl uppercase tracking-widest">Teste Başla</button>
+              <button type="submit" className="w-full bg-slate-900 text-white font-black py-5 rounded-2xl shadow-xl uppercase">Analizi Başlat</button>
             </form>
           </div>
         )}
@@ -172,11 +188,10 @@ export default function App() {
             {[1, 2, 3, 4].map(sid => (
               <div key={sid} className="space-y-6 border-b last:border-0 pb-8">
                 <h3 className="text-xl font-black uppercase italic text-slate-800 flex items-center gap-2">
-                   {sid === 1 && <Globe size={20}/>} {sid === 2 && <Zap size={20}/>} {sid === 3 && <Target size={20}/>} {sid === 4 && <Users size={20}/>}
                    {engineTitles[sid]}
                 </h3>
                 {allQuestions.filter(q => q.section === sid).map((q, idx) => (
-                  <div key={q.id} className="bg-slate-50 p-6 rounded-[2rem] border">
+                  <div key={q.id} className="bg-slate-50 p-6 rounded-[2rem] border shadow-sm">
                     <p className="font-bold text-slate-700 mb-5">{idx + 1}. {q.text}</p>
                     <div className="flex justify-between gap-1">
                       {[1, 2, 3, 4, 5].map(v => (
@@ -193,7 +208,7 @@ export default function App() {
                 ))}
               </div>
             ))}
-            <button onClick={handleSubmitQuiz} className="w-full bg-emerald-600 text-white font-black py-6 rounded-[2rem] shadow-2xl uppercase flex items-center justify-center gap-4">
+            <button onClick={handleSubmitQuiz} className="w-full bg-emerald-600 text-white font-black py-6 rounded-[2rem] shadow-2xl transition transform hover:-translate-y-1 uppercase tracking-widest flex items-center justify-center gap-4">
               <Rocket size={28} /> Testi Tamamla
             </button>
           </div>
@@ -202,12 +217,17 @@ export default function App() {
         {currentStep === 'results' && (
           <div className="p-8 space-y-8 animate-in fade-in duration-700">
             <div className={`p-10 rounded-[3rem] text-white shadow-2xl ${results?.total <= 40 ? 'bg-red-600' : results?.total <= 70 ? 'bg-orange-500' : 'bg-emerald-600'}`}>
-              <h2 className="text-xs opacity-70 uppercase font-black mb-4 tracking-widest">Büyüme Skoru</h2>
-              <div className="text-8xl font-black">{results?.total}<span className="text-2xl opacity-40">/100</span></div>
-              <div className="mt-8 bg-black/20 p-6 rounded-3xl"><p className="text-xs uppercase opacity-60 mb-2 font-black">Ana Darboğaz</p><p className="text-2xl font-black uppercase italic">{results?.bottleneck}</p></div>
+              <h2 className="text-xs opacity-70 uppercase font-black mb-4">Büyüme Skoru</h2>
+              <div className="text-8xl font-black leading-none">{results?.total}<span className="text-2xl opacity-40">/100</span></div>
+              <div className="mt-8 bg-black/20 p-6 rounded-3xl font-black italic uppercase text-2xl">{results?.bottleneck}</div>
             </div>
 
             <div className="bg-white p-8 rounded-[2.5rem] border shadow-xl min-h-[400px]">
+              <div className="flex items-center gap-3 mb-8 border-b pb-4">
+                <MessageSquare className="w-8 h-8 text-orange-500" />
+                <h3 className="text-2xl font-black italic uppercase">Stratejik Teşhis Raporu</h3>
+              </div>
+
               {reportLoading ? (
                 <div className="flex flex-col items-center justify-center py-20 gap-4 opacity-60">
                   <Loader2 className="w-12 h-12 text-orange-500 animate-spin" />
@@ -215,14 +235,21 @@ export default function App() {
                 </div>
               ) : (
                 <div className="prose prose-orange max-w-none text-slate-700 font-medium leading-relaxed">
-                  <ReactMarkdown components={{ strong: ({...props}) => <span className="font-black text-slate-900 bg-orange-50 px-1 border-b-2 border-orange-200" {...props} /> }}>{reportData}</ReactMarkdown>
+                  <ReactMarkdown 
+                    components={{
+                      strong: ({...props}) => <span className="font-black text-slate-900 bg-orange-50 px-1 border-b-2 border-orange-200" {...props} />,
+                      h2: ({...props}) => <h2 className="text-2xl font-black text-slate-900 uppercase italic mt-10 mb-4 border-b-2 border-orange-500 inline-block" {...props} />,
+                    }}
+                  >
+                    {reportData}
+                  </ReactMarkdown>
                 </div>
               )}
             </div>
             
-            {emailStatus && <div className="text-center font-bold text-emerald-600 text-xs uppercase animate-pulse">{emailStatus}</div>}
+            {emailStatus && <div className="text-center font-bold text-emerald-600 text-xs uppercase animate-pulse mt-4">{emailStatus}</div>}
             
-            <a href={`https://wa.me/905379484868?text=Merhaba, IQ360 Büyüme Testimi tamamladım (Skorum: ${results?.total}/100).`} target="_blank" rel="noreferrer" className="w-full bg-orange-500 hover:bg-orange-600 text-white font-black py-6 rounded-[2rem] shadow-xl block text-center uppercase tracking-widest text-lg">
+            <a href={`https://wa.me/905379484868?text=Merhaba, IQ360 Büyüme Testimi tamamladım (Skorum: ${results?.total}/100).`} target="_blank" rel="noreferrer" className="w-full bg-orange-500 hover:bg-orange-600 text-white font-black py-6 rounded-[2rem] shadow-xl block text-center uppercase tracking-widest text-lg mt-6">
               Strateji Randevusu Al
             </a>
           </div>
