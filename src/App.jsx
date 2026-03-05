@@ -87,14 +87,14 @@ export default function App() {
       engineScores[q.section] += score;
       totalScore += score;
     });
-    let minVal = 26; let bottleneckId = 1;
+    let minVal = 26; let bId = 1;
     Object.keys(engineScores).forEach(id => {
       if (engineScores[id] < minVal) {
         minVal = engineScores[id];
-        bottleneckId = id;
+        bId = id;
       }
     });
-    return { total: totalScore, engineScores, bottleneck: engineTitles[bottleneckId] };
+    return { total: totalScore, engineScores, bottleneck: engineTitles[bId] };
   };
 
   const handleSubmitQuiz = async () => {
@@ -114,12 +114,9 @@ export default function App() {
         body: JSON.stringify({ userInfo: user, ...scoreData })
       });
 
-      if (!reportRes.ok) {
-        const errJson = await reportRes.json();
-        throw new Error(errJson.error || "Rapor oluşturulamadı.");
-      }
-
       const data = await reportRes.json();
+      if (!reportRes.ok) throw new Error(data.error || "Rapor hatası.");
+      
       setReportData(data.detailedReport);
 
       setEmailStatus('Raporunuz hazırlanıyor...');
@@ -130,14 +127,13 @@ export default function App() {
       });
       setEmailStatus('Rapor e-postanıza gönderildi!');
     } catch (err) {
-      console.error("Frontend Hatası:", err);
-      setError("Rapor hazırlanırken bir hata oluştu, ancak skorunuz yukarıdadır.");
+      setError(`Sistem Hatası: ${err.message}`);
     } finally {
       setReportLoading(false);
     }
   };
 
-  if (initLoading) return <div className="min-h-screen bg-slate-900 flex items-center justify-center text-orange-500 font-black animate-pulse uppercase tracking-widest">METRIQ360 YÜKLENİYOR...</div>;
+  if (initLoading) return <div className="min-h-screen bg-slate-900 flex items-center justify-center text-orange-500 font-black animate-pulse">METRIQ360 YÜKLENİYOR...</div>;
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col items-center py-10 px-4 font-sans text-slate-900">
@@ -150,44 +146,40 @@ export default function App() {
         {error && <div className="mx-8 mt-4 bg-red-50 text-red-700 p-4 rounded-2xl text-xs font-bold border-l-4 border-red-500 flex items-center gap-3"><ShieldAlert size={18} /> {error}</div>}
 
         {currentStep === 'form' && (
-          <div className="p-8 pt-4 space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+          <div className="p-8 pt-4 space-y-6">
             <div className="bg-orange-50 p-6 rounded-3xl border border-orange-100 text-center">
-              <h2 className="text-xl font-black text-orange-900 uppercase italic mb-2">İşletmenizin Röntgenini Çekiyoruz</h2>
-              <p className="text-sm text-orange-800 font-medium leading-relaxed">Büyüme motorunuzdaki tıkanıklıkları tespit etmek için bilgilerinizi giriniz.</p>
+              <h2 className="text-xl font-black text-orange-900 uppercase italic mb-2">Büyüme Röntgeni Başlıyor</h2>
+              <p className="text-sm text-orange-800 font-medium">Büyüme motorunuzdaki tıkanıklıkları tespit etmek için bilgilerinizi giriniz.</p>
             </div>
             <form onSubmit={handleUserFormSubmit} className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
-                <input type="text" placeholder="Adınız" value={user.name} onChange={(e)=>setUser({...user, name: e.target.value})} className="p-4 rounded-2xl bg-slate-50 outline-none font-bold" required />
-                <input type="text" placeholder="Soyadınız" value={user.surname} onChange={(e)=>setUser({...user, surname: e.target.value})} className="p-4 rounded-2xl bg-slate-50 outline-none font-bold" required />
+                <input type="text" placeholder="Ad" value={user.name} onChange={(e)=>setUser({...user, name: e.target.value})} className="p-4 rounded-2xl bg-slate-50 outline-none font-bold" required />
+                <input type="text" placeholder="Soyad" value={user.surname} onChange={(e)=>setUser({...user, surname: e.target.value})} className="p-4 rounded-2xl bg-slate-50 outline-none font-bold" required />
               </div>
-              <input type="text" placeholder="Sektörünüz" value={user.sector} onChange={(e)=>setUser({...user, sector: e.target.value})} className="w-full p-4 rounded-2xl bg-slate-50 outline-none font-bold" required />
-              <input type="email" placeholder="E-posta Adresiniz" value={user.email} onChange={(e)=>setUser({...user, email: e.target.value})} className="w-full p-4 rounded-2xl bg-slate-50 outline-none font-bold" required />
-              <button type="submit" className="w-full bg-slate-900 hover:bg-slate-800 text-white font-black py-5 rounded-2xl shadow-xl transition transform hover:-translate-y-1 uppercase tracking-widest flex items-center justify-center gap-3 group">
-                Teste Başla <ChevronRight size={20} />
-              </button>
+              <input type="text" placeholder="Sektör" value={user.sector} onChange={(e)=>setUser({...user, sector: e.target.value})} className="w-full p-4 rounded-2xl bg-slate-50 outline-none font-bold" required />
+              <input type="email" placeholder="E-posta" value={user.email} onChange={(e)=>setUser({...user, email: e.target.value})} className="w-full p-4 rounded-2xl bg-slate-50 outline-none font-bold" required />
+              <button type="submit" className="w-full bg-slate-900 text-white font-black py-5 rounded-2xl shadow-xl uppercase tracking-widest">Teste Başla</button>
             </form>
           </div>
         )}
 
         {currentStep === 'quiz' && (
-          <div className="p-8 pt-4 space-y-10 animate-in fade-in slide-in-from-right-4 duration-500">
+          <div className="p-8 pt-4 space-y-10 animate-in fade-in duration-500">
             {[1, 2, 3, 4].map(sid => (
               <div key={sid} className="space-y-6 border-b last:border-0 pb-8">
-                <div className="flex items-center gap-3 border-b-4 border-slate-100 pb-2">
-                  <div className="w-10 h-10 bg-orange-500 rounded-xl flex items-center justify-center text-white">
-                    {sid === 1 && <Globe size={24} />} {sid === 2 && <Zap size={24} />} {sid === 3 && <Target size={24} />} {sid === 4 && <Users size={24} />}
-                  </div>
-                  <h3 className="text-xl font-black uppercase italic text-slate-800">{engineTitles[sid]}</h3>
-                </div>
+                <h3 className="text-xl font-black uppercase italic text-slate-800 flex items-center gap-2">
+                   {sid === 1 && <Globe size={20}/>} {sid === 2 && <Zap size={20}/>} {sid === 3 && <Target size={20}/>} {sid === 4 && <Users size={20}/>}
+                   {engineTitles[sid]}
+                </h3>
                 {allQuestions.filter(q => q.section === sid).map((q, idx) => (
-                  <div key={q.id} className="bg-slate-50 p-6 rounded-[2rem] border border-slate-100">
-                    <p className="font-bold text-slate-700 mb-5 leading-tight">{idx + 1}. {q.text}</p>
+                  <div key={q.id} className="bg-slate-50 p-6 rounded-[2rem] border">
+                    <p className="font-bold text-slate-700 mb-5">{idx + 1}. {q.text}</p>
                     <div className="flex justify-between gap-1">
                       {[1, 2, 3, 4, 5].map(v => (
                         <button
                           key={v}
                           onClick={() => handleAnswerChange(q.id, v)}
-                          className={`flex-1 py-4 rounded-2xl font-black transition-all ${answers[q.id] === v ? 'bg-orange-500 text-white shadow-lg ring-4 ring-orange-100 scale-110' : 'bg-white text-slate-400 border border-slate-200'}`}
+                          className={`flex-1 py-4 rounded-2xl font-black transition-all ${answers[q.id] === v ? 'bg-orange-500 text-white scale-110 shadow-lg' : 'bg-white text-slate-400 border'}`}
                         >
                           {v}
                         </button>
@@ -197,7 +189,7 @@ export default function App() {
                 ))}
               </div>
             ))}
-            <button onClick={handleSubmitQuiz} className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-black py-6 rounded-[2rem] shadow-2xl transition transform hover:-translate-y-1 uppercase tracking-widest flex items-center justify-center gap-4">
+            <button onClick={handleSubmitQuiz} className="w-full bg-emerald-600 text-white font-black py-6 rounded-[2rem] shadow-2xl uppercase flex items-center justify-center gap-4">
               <Rocket size={28} /> Testi Tamamla
             </button>
           </div>
@@ -205,18 +197,13 @@ export default function App() {
 
         {currentStep === 'results' && (
           <div className="p-8 space-y-8 animate-in fade-in duration-700">
-            <div className={`p-10 rounded-[3rem] text-white shadow-2xl relative overflow-hidden ${results?.total <= 40 ? 'bg-red-600' : results?.total <= 70 ? 'bg-orange-500' : 'bg-emerald-600'}`}>
-              <h2 className="text-xs opacity-70 uppercase font-black mb-4 tracking-widest">Büyüme Sağlık Skoru</h2>
-              <div className="text-8xl font-black leading-none">{results?.total}<span className="text-2xl opacity-40">/100</span></div>
-              <div className="mt-8 bg-black/20 p-6 rounded-3xl"><p className="text-xs uppercase font-black opacity-60 mb-2">Ana Darboğaz</p><p className="text-2xl font-black italic uppercase">{results?.bottleneck}</p></div>
+            <div className={`p-10 rounded-[3rem] text-white shadow-2xl ${results?.total <= 40 ? 'bg-red-600' : results?.total <= 70 ? 'bg-orange-500' : 'bg-emerald-600'}`}>
+              <h2 className="text-xs opacity-70 uppercase font-black mb-4 tracking-widest">Büyüme Skoru</h2>
+              <div className="text-8xl font-black">{results?.total}<span className="text-2xl opacity-40">/100</span></div>
+              <div className="mt-8 bg-black/20 p-6 rounded-3xl"><p className="text-xs uppercase opacity-60 mb-2 font-black">Ana Darboğaz</p><p className="text-2xl font-black uppercase italic">{results?.bottleneck}</p></div>
             </div>
 
-            <div className="bg-white p-8 rounded-[2.5rem] border-2 border-slate-100 shadow-xl min-h-[400px]">
-              <div className="flex items-center gap-3 mb-8 border-b pb-4">
-                <MessageSquare className="w-8 h-8 text-orange-500" />
-                <h3 className="text-2xl font-black italic uppercase">Stratejik Teşhis Raporu</h3>
-              </div>
-
+            <div className="bg-white p-8 rounded-[2.5rem] border shadow-xl min-h-[400px]">
               {reportLoading ? (
                 <div className="flex flex-col items-center justify-center py-20 gap-4 opacity-60">
                   <Loader2 className="w-12 h-12 text-orange-500 animate-spin" />
