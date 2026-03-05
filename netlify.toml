@@ -1,17 +1,1 @@
-# Bu, Netlify'ın projenizi nasıl kuracağını ve yayınlayacağını belirleyen ana yapılandırma dosyasıdır.
-
-[build]
-  # Projeyi yayına hazırlamak için çalıştırılacak komut.
-  command = "npm run build"
-  
-  # Komut çalıştıktan sonra yayına alınacak olan dosyaların bulunduğu klasör.
-  # React (Vite) projeleri için bu genellikle 'dist' klasörüdür.
-  publish = "dist"
-
-# Bu bölüm, arka plan kodlarınızın (Netlify Fonksiyonları) nerede olduğunu ve nasıl paketleneceğini belirtir.
-[functions]
-  # Fonksiyon dosyalarının bulunduğu klasörün yolu.
-  directory = "netlify/functions"
-  
-  # Fonksiyonları paketlemek için kullanılacak araç. 'esbuild' modern ve hızlıdır.
-  node_bundler = "esbuild"
+[build]command = "npm run build"publish = "dist"functions = "netlify/functions"[functions]node_bundler = "esbuild"external_node_modules = ["node-fetch", "nodemailer"][[redirects]]from = "/.netlify/functions/*"to = "/.netlify/functions/:splat"status = 200
