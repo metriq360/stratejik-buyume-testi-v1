@@ -16,30 +16,26 @@ export const handler = async (event) => {
   try {
     const data = JSON.parse(event.body);
     const { userInfo, total, engineScores, bottleneck } = data;
-    const geminiApiKey = process.env.GEMINI_API_KEY;
+    const apiKey = process.env.GEMINI_API_KEY;
 
-    if (!geminiApiKey) {
+    if (!apiKey) {
       return { 
         statusCode: 500, 
         headers,
-        body: JSON.stringify({ error: "API anahtarı Netlify panelinde eksik kanka!" }) 
+        body: JSON.stringify({ error: "Netlify panelinde GEMINI_API_KEY eksik kanka!" }) 
       };
     }
 
-    // Sistem talimatı ve kullanıcı verilerini ayırıyoruz (Gemini 2.5 standartı)
     const systemPrompt = "Sen METRIQ360 markasının kıdemli büyüme mühendisisin. Sert, dürüst ve kanka tonunda konuşursun. İşletme sahiplerine gerçekleri tokat gibi çarparsın.";
     const userQuery = `
       Müşteri: ${userInfo.name} ${userInfo.surname} | Sektör: ${userInfo.sector}
       Skor: ${total}/100 | Ana Darboğaz: ${bottleneck}
-      
-      Skor Detayları: 
-      Trafik: ${engineScores[1]}, Lead: ${engineScores[2]}, Satış: ${engineScores[3]}, Değer: ${engineScores[4]}
-
-      Lütfen bu verilere dayanarak, işletmenin neden para kaybettiğini anlatan ve +90 537 948 48 68 numarasından randevu almasını söyleyen sert bir rapor yaz.
+      Skor Detayları: Trafik: ${engineScores[1]}, Lead: ${engineScores[2]}, Satış: ${engineScores[3]}, Değer: ${engineScores[4]}
+      Lütfen bu verilere dayanarak, işletmenin neden para kaybettiğini anlatan sert bir rapor yaz. Sonunda +90 537 948 48 68 numarasından randevu almasını söyle.
     `;
 
-    // Gemini API Çağrısı (Model: gemini-2.5-flash-preview-09-2025)
-    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${geminiApiKey}`, {
+    // Model ismi gemini-2.5-flash olarak güncellendi
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -54,22 +50,23 @@ export const handler = async (event) => {
       return { 
         statusCode: response.status, 
         headers, 
-        body: JSON.stringify({ error: "AI motoru patladı", details: result }) 
+        body: JSON.stringify({ error: "Google API hata verdi", details: result }) 
       };
     }
 
-    const detailedReport = result.candidates?.[0]?.content?.parts?.[0]?.text || "Analiz yapılamadı kanka.";
+    const detailedReport = result.candidates?.[0]?.content?.parts?.[0]?.text || "Rapor oluşturulamadı kanka.";
 
     return {
       statusCode: 200,
       headers,
       body: JSON.stringify({ detailedReport })
     };
+
   } catch (error) {
     return { 
       statusCode: 500, 
-      headers,
-      body: JSON.stringify({ error: "Sunucu içi hata", message: error.message }) 
+      headers, 
+      body: JSON.stringify({ error: "Fonksiyon içi hata", message: error.message }) 
     };
   }
 };
