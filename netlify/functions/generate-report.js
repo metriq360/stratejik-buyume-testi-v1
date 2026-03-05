@@ -1,12 +1,12 @@
-// Dışarıdan 'node-fetch' import etmiyoruz, Node 18+ içindeki yerel fetch'i kullanıyoruz.
 export const handler = async (event) => {
+  // CORS Ayarları: Tarayıcıyı sakinleştirelim
   const headers = {
     "Access-Control-Allow-Origin": "*",
     "Access-Control-Allow-Headers": "Content-Type",
     "Access-Control-Allow-Methods": "POST, OPTIONS",
   };
 
-  // Pre-flight isteği (OPTIONS) tarayıcı tarafından otomatik atılır, buna OK dememiz şart.
+  // Tarayıcı "OPTIONS" isteği atarsa (Pre-flight) "OK" ver ve geç
   if (event.httpMethod === "OPTIONS") {
     return { statusCode: 200, headers, body: "" };
   }
@@ -21,7 +21,11 @@ export const handler = async (event) => {
     const geminiApiKey = process.env.GEMINI_API_KEY;
 
     if (!geminiApiKey) {
-      throw new Error("GEMINI_API_KEY ortam değişkeni Netlify üzerinde tanımlı değil.");
+      return { 
+        statusCode: 500, 
+        headers,
+        body: JSON.stringify({ error: "GEMINI_API_KEY Netlify panelinde eksik kanka!" }) 
+      };
     }
 
     const prompt = `
@@ -35,11 +39,11 @@ export const handler = async (event) => {
       TALİMATLAR:
       1. Raporu METRIQ360'ın sert, dürüst ve kanka tonunda yaz.
       2. "Kanka, senin dükkanın asıl sızıntısı ${bottleneck} tarafında..." diyerek gerçekleri yüzüne vur.
-      3. Bu skorlarla neden ayda binlerce lira kaybettiğini anlat.
+      3. Bu skorlarla neden para kaybettiğini anlat.
       4. Çözüm için +90 537 948 48 68 numarasından randevu alması gerektiğini belirt.
     `;
 
-    // Yerel (native) fetch kullanımı
+    // Yerel (native) fetch kullanımı (Node 18+)
     const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${geminiApiKey}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -52,7 +56,7 @@ export const handler = async (event) => {
 
     if (!response.ok) {
       console.error("Gemini API Hata Detayı:", result);
-      throw new Error(`Gemini API hatası: ${response.status}`);
+      return { statusCode: response.status, headers, body: JSON.stringify({ error: "AI motoru patladı", details: result }) };
     }
 
     const detailedReport = result.candidates?.[0]?.content?.parts?.[0]?.text || "Analiz şu an yapılamıyor kanka, skorun yukarıda.";
