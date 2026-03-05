@@ -1,5 +1,5 @@
 {
-  "name": "metriq360-dijital-test",
+  "name": "metriq360-iq360-test",
   "private": true,
   "version": "1.0.0",
   "type": "module",
@@ -11,8 +11,8 @@
   },
   "dependencies": {
     "@google/generative-ai": "^0.14.0",
-    "@sendgrid/mail": "^8.1.3",
     "firebase": "^10.12.2",
+    "lucide-react": "^0.395.0",
     "node-fetch": "^3.3.2",
     "nodemailer": "^7.0.3",
     "react": "^18.3.1",
