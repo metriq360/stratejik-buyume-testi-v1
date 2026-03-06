@@ -4,7 +4,7 @@ import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged }
 import { getFirestore, collection, addDoc } from 'firebase/firestore';
 import ReactMarkdown from 'react-markdown';
 import { 
-  ChevronRight, Rocket, MessageSquare, Globe, Loader2, Target, Zap, Users, ShieldAlert, BarChart3, Info 
+  ChevronRight, Rocket, MessageSquare, Globe, Loader2, Target, Zap, Users, ShieldAlert, BarChart3, Info, TrendingUp 
 } from 'lucide-react';
 
 const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
@@ -154,9 +154,14 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-[#fffaf5] flex flex-col items-center justify-center py-10 px-4 font-sans text-slate-900">
-      <div className="w-full max-w-2xl bg-white rounded-[3rem] shadow-xl border-t-[10px] border-[#f97316] overflow-hidden">
+      <div className="w-full max-w-2xl bg-white rounded-[3rem] shadow-xl border-t-[10px] border-[#f97316] overflow-hidden relative">
         
-        <div className="p-10 text-center bg-white">
+        {/* Sol Üst Köşe İkonu - Z-index artırıldı ve pozisyon netleştirildi */}
+        <div className="absolute top-6 left-6 text-[#f97316] opacity-40 z-50 pointer-events-none">
+          <TrendingUp size={44} strokeWidth={2.5} />
+        </div>
+
+        <div className="p-10 text-center bg-white relative z-10">
           <h1 className="text-4xl md:text-5xl font-black text-[#1e293b] tracking-tighter uppercase mb-2">
             METR<span className="text-[#f97316]">IQ</span>360
           </h1>
@@ -166,13 +171,13 @@ export default function App() {
         </div>
 
         {error && (
-          <div className="mx-10 mb-4 bg-red-50 text-red-700 p-4 rounded-2xl text-xs font-bold border-l-4 border-red-500 flex items-center gap-3">
+          <div className="mx-10 mb-4 bg-red-50 text-red-700 p-4 rounded-2xl text-xs font-bold border-l-4 border-red-500 flex items-center gap-3 relative z-10">
             <ShieldAlert size={18} /> {error}
           </div>
         )}
 
         {currentStep === 'form' && (
-          <div className="p-10 pt-2 space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+          <div className="p-10 pt-2 space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 relative z-10">
             <form onSubmit={handleUserFormSubmit} className="space-y-5">
               <input 
                 type="text" 
@@ -210,14 +215,14 @@ export default function App() {
                 type="submit" 
                 className="w-full bg-[#f97316] hover:bg-[#ea580c] text-white font-black py-5 rounded-2xl shadow-lg shadow-orange-200 transition transform hover:-translate-y-1 active:scale-95 uppercase tracking-widest text-lg"
               >
-                TESTE BAŞLA
+                BÜYÜME TESTİNİ BAŞLAT
               </button>
             </form>
           </div>
         )}
 
         {currentStep === 'quiz' && (
-          <div className="p-10 pt-2 space-y-10 animate-in fade-in duration-500">
+          <div className="p-10 pt-2 space-y-10 animate-in fade-in duration-500 relative z-10">
             {[1, 2, 3, 4].map(sid => (
               <div key={sid} className="space-y-6 border-b border-slate-50 last:border-0 pb-8">
                 <h3 className="text-xl font-black uppercase italic text-slate-800 flex items-center gap-2">
@@ -248,7 +253,7 @@ export default function App() {
         )}
 
         {currentStep === 'results' && (
-          <div className="p-10 space-y-8 animate-in fade-in duration-700">
+          <div className="p-10 space-y-8 animate-in fade-in duration-700 relative z-10">
             <div className={`p-10 rounded-[3rem] text-white shadow-2xl ${results?.total <= 40 ? 'bg-red-600' : results?.total <= 70 ? 'bg-orange-500' : 'bg-emerald-600'}`}>
               <h2 className="text-xs opacity-70 uppercase font-black mb-4">Büyüme Skoru</h2>
               <div className="text-8xl font-black leading-none">{results?.total}<span className="text-2xl opacity-40">/100</span></div>
