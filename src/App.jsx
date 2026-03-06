@@ -150,55 +150,88 @@ export default function App() {
     }
   };
 
-  if (initLoading) return <div className="min-h-screen bg-slate-900 flex items-center justify-center text-orange-500 font-black animate-pulse">METRIQ360 YÜKLENİYOR...</div>;
+  if (initLoading) return <div className="min-h-screen bg-[#fffaf5] flex items-center justify-center text-orange-500 font-black animate-pulse">METRIQ360...</div>;
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col items-center py-10 px-4 font-sans text-slate-900">
-      <div className="w-full max-w-2xl bg-white rounded-[2.5rem] shadow-2xl border-t-[12px] border-orange-500 overflow-hidden">
+    <div className="min-h-screen bg-[#fffaf5] flex flex-col items-center justify-center py-10 px-4 font-sans text-slate-900">
+      <div className="w-full max-w-2xl bg-white rounded-[3rem] shadow-xl border-t-[10px] border-[#f97316] overflow-hidden">
         
-        <div className="p-8 text-center bg-white border-b">
-          <h1 className="text-4xl md:text-5xl font-black text-slate-900 tracking-tighter uppercase mb-1">
-            METR<span className="text-orange-500">IQ</span>360
+        <div className="p-10 text-center bg-white">
+          <h1 className="text-4xl md:text-5xl font-black text-[#1e293b] tracking-tighter uppercase mb-2">
+            METR<span className="text-[#f97316]">IQ</span>360
           </h1>
-          <p className="text-slate-400 font-bold uppercase tracking-[0.3em] text-[10px] md:text-xs">IQ360™ Stratejik Büyüme Testi</p>
+          <p className="text-[#64748b] font-bold uppercase tracking-[0.2em] text-[10px] md:text-xs">
+            IQ360™ Stratejik Büyüme Testi
+          </p>
         </div>
 
         {error && (
-          <div className="mx-8 mt-4 bg-red-50 text-red-700 p-4 rounded-2xl text-xs font-bold border-l-4 border-red-500 flex items-center gap-3">
+          <div className="mx-10 mb-4 bg-red-50 text-red-700 p-4 rounded-2xl text-xs font-bold border-l-4 border-red-500 flex items-center gap-3">
             <ShieldAlert size={18} /> {error}
           </div>
         )}
 
         {currentStep === 'form' && (
-          <div className="p-8 pt-4 space-y-6">
-            <form onSubmit={handleUserFormSubmit} className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <input type="text" placeholder="Ad" value={user.name} onChange={(e)=>setUser({...user, name: e.target.value})} className="p-4 rounded-2xl bg-slate-50 outline-none font-bold" required />
-                <input type="text" placeholder="Soyad" value={user.surname} onChange={(e)=>setUser({...user, surname: e.target.value})} className="p-4 rounded-2xl bg-slate-50 outline-none font-bold" required />
-              </div>
-              <input type="text" placeholder="Sektör" value={user.sector} onChange={(e)=>setUser({...user, sector: e.target.value})} className="w-full p-4 rounded-2xl bg-slate-50 outline-none font-bold" required />
-              <input type="email" placeholder="E-posta" value={user.email} onChange={(e)=>setUser({...user, email: e.target.value})} className="w-full p-4 rounded-2xl bg-slate-50 outline-none font-bold" required />
-              <button type="submit" className="w-full bg-slate-900 text-white font-black py-5 rounded-2xl shadow-xl uppercase">Analizi Başlat</button>
+          <div className="p-10 pt-2 space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <form onSubmit={handleUserFormSubmit} className="space-y-5">
+              <input 
+                type="text" 
+                placeholder="Adınız" 
+                value={user.name} 
+                onChange={(e)=>setUser({...user, name: e.target.value})} 
+                className="w-full p-5 rounded-2xl bg-white border border-slate-200 focus:border-orange-500 focus:ring-1 focus:ring-orange-500 outline-none transition font-semibold text-slate-600 placeholder:text-slate-300 shadow-sm" 
+                required 
+              />
+              <input 
+                type="text" 
+                placeholder="Soyadınız" 
+                value={user.surname} 
+                onChange={(e)=>setUser({...user, surname: e.target.value})} 
+                className="w-full p-5 rounded-2xl bg-white border border-slate-200 focus:border-orange-500 focus:ring-1 focus:ring-orange-500 outline-none transition font-semibold text-slate-600 placeholder:text-slate-300 shadow-sm" 
+                required 
+              />
+              <input 
+                type="text" 
+                placeholder="Sektörünüz" 
+                value={user.sector} 
+                onChange={(e)=>setUser({...user, sector: e.target.value})} 
+                className="w-full p-5 rounded-2xl bg-white border border-slate-200 focus:border-orange-500 focus:ring-1 focus:ring-orange-500 outline-none transition font-semibold text-slate-600 placeholder:text-slate-300 shadow-sm" 
+                required 
+              />
+              <input 
+                type="email" 
+                placeholder="E-posta Adresiniz" 
+                value={user.email} 
+                onChange={(e)=>setUser({...user, email: e.target.value})} 
+                className="w-full p-5 rounded-2xl bg-white border border-slate-200 focus:border-orange-500 focus:ring-1 focus:ring-orange-500 outline-none transition font-semibold text-slate-600 placeholder:text-slate-300 shadow-sm" 
+                required 
+              />
+              <button 
+                type="submit" 
+                className="w-full bg-[#f97316] hover:bg-[#ea580c] text-white font-black py-5 rounded-2xl shadow-lg shadow-orange-200 transition transform hover:-translate-y-1 active:scale-95 uppercase tracking-widest text-lg"
+              >
+                TESTE BAŞLA
+              </button>
             </form>
           </div>
         )}
 
         {currentStep === 'quiz' && (
-          <div className="p-8 pt-4 space-y-10 animate-in fade-in duration-500">
+          <div className="p-10 pt-2 space-y-10 animate-in fade-in duration-500">
             {[1, 2, 3, 4].map(sid => (
-              <div key={sid} className="space-y-6 border-b last:border-0 pb-8">
+              <div key={sid} className="space-y-6 border-b border-slate-50 last:border-0 pb-8">
                 <h3 className="text-xl font-black uppercase italic text-slate-800 flex items-center gap-2">
                    {engineTitles[sid]}
                 </h3>
                 {allQuestions.filter(q => q.section === sid).map((q, idx) => (
-                  <div key={q.id} className="bg-slate-50 p-6 rounded-[2rem] border shadow-sm">
+                  <div key={q.id} className="bg-slate-50 p-6 rounded-[2rem] border border-slate-100">
                     <p className="font-bold text-slate-700 mb-5">{idx + 1}. {q.text}</p>
                     <div className="flex justify-between gap-1">
                       {[1, 2, 3, 4, 5].map(v => (
                         <button
                           key={v}
                           onClick={() => handleAnswerChange(q.id, v)}
-                          className={`flex-1 py-4 rounded-2xl font-black transition-all ${answers[q.id] === v ? 'bg-orange-500 text-white scale-110 shadow-lg' : 'bg-white text-slate-400 border'}`}
+                          className={`flex-1 py-4 rounded-2xl font-black transition-all ${answers[q.id] === v ? 'bg-orange-500 text-white scale-110 shadow-lg' : 'bg-white text-slate-400 border border-slate-200'}`}
                         >
                           {v}
                         </button>
@@ -208,22 +241,22 @@ export default function App() {
                 ))}
               </div>
             ))}
-            <button onClick={handleSubmitQuiz} className="w-full bg-emerald-600 text-white font-black py-6 rounded-[2rem] shadow-2xl transition transform hover:-translate-y-1 uppercase tracking-widest flex items-center justify-center gap-4">
+            <button onClick={handleSubmitQuiz} className="w-full bg-emerald-600 text-white font-black py-6 rounded-3xl shadow-2xl transition transform hover:-translate-y-1 uppercase tracking-widest flex items-center justify-center gap-4">
               <Rocket size={28} /> Testi Tamamla
             </button>
           </div>
         )}
 
         {currentStep === 'results' && (
-          <div className="p-8 space-y-8 animate-in fade-in duration-700">
+          <div className="p-10 space-y-8 animate-in fade-in duration-700">
             <div className={`p-10 rounded-[3rem] text-white shadow-2xl ${results?.total <= 40 ? 'bg-red-600' : results?.total <= 70 ? 'bg-orange-500' : 'bg-emerald-600'}`}>
               <h2 className="text-xs opacity-70 uppercase font-black mb-4">Büyüme Skoru</h2>
               <div className="text-8xl font-black leading-none">{results?.total}<span className="text-2xl opacity-40">/100</span></div>
               <div className="mt-8 bg-black/20 p-6 rounded-3xl font-black italic uppercase text-2xl">{results?.bottleneck}</div>
             </div>
 
-            <div className="bg-white p-8 rounded-[2.5rem] border shadow-xl min-h-[400px]">
-              <div className="flex items-center gap-3 mb-8 border-b pb-4">
+            <div className="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-xl min-h-[400px]">
+              <div className="flex items-center gap-3 mb-8 border-b pb-4 border-slate-50">
                 <MessageSquare className="w-8 h-8 text-orange-500" />
                 <h3 className="text-2xl font-black italic uppercase">Stratejik Teşhis Raporu</h3>
               </div>
@@ -249,7 +282,7 @@ export default function App() {
             
             {emailStatus && <div className="text-center font-bold text-emerald-600 text-xs uppercase animate-pulse mt-4">{emailStatus}</div>}
             
-            <a href={`https://wa.me/905379484868?text=Merhaba, IQ360 Büyüme Testimi tamamladım (Skorum: ${results?.total}/100).`} target="_blank" rel="noreferrer" className="w-full bg-orange-500 hover:bg-orange-600 text-white font-black py-6 rounded-[2rem] shadow-xl block text-center uppercase tracking-widest text-lg mt-6">
+            <a href={`https://wa.me/905379484868?text=Merhaba, IQ360 Büyüme Testimi tamamladım (Skorum: ${results?.total}/100).`} target="_blank" rel="noreferrer" className="w-full bg-orange-500 hover:bg-orange-600 text-white font-black py-6 rounded-3xl shadow-xl block text-center uppercase tracking-widest text-lg mt-6">
               Strateji Randevusu Al
             </a>
           </div>
