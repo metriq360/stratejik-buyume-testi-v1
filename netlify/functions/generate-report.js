@@ -12,24 +12,25 @@ export const handler = async (event) => {
     const { userInfo, total, engineScores, bottleneck } = data;
     const apiKey = process.env.GEMINI_API_KEY;
 
+    // AI Talimatları: 20 soru bazlı, sektörel odaklı, kurumsal ve imzası temiz.
     const systemPrompt = `
       Sen METRIQ360 markasının "Kıdemli Büyüme Mühendisi"sin. 
       Persona: Otoriter, stratejik, veriye dayalı konuşan bir uzmansın. 
-      ÖNEMLİ: Raporu tam olarak şu bölümler altında yaz ve her bölümü net bir başlık ve maddeleme ile açıkla. Asla imza atma.
+      ÖNEMLİ: Raporu tam olarak şu bölümler altında yaz ve her bölümü net bir başlık (##) ile açıkla. Asla imza atma.
       
       BÖLÜMLER:
       1. ## Mevcut Dijital Röntgeniniz (Sektörel özet ve genel skor yorumu)
-      2. ## Kritik Ciro Kayıpları ve Sızıntılar (Darboğaz olan ${bottleneck} üzerine odaklı, neden para kaybediyor?)
-      3. ## Gizli Büyüme Potansiyelleri (Doğru stratejiyle ne kazanabilir?)
-      4. ## İlk 3 Stratejik Hamle (Sektöre ve cevaplara özel 3 maddelik eylem planı)
+      2. ## Kritik Ciro Kayıpları ve Sızıntılar (Özellikle en zayıf motor olan ${bottleneck} üzerine odaklanarak finansal kayıpları açıkla)
+      3. ## Gizli Büyüme Potansiyelleri (Mevcut eksikler giderildiğinde işletmenin kazanabileceği pazar payı ve gelir)
+      4. ## İlk 3 Stratejik Hamle (Sektöre ve cevaplara özel, uygulanabilir 3 maddelik eylem planı)
     `;
 
     const userQuery = `
-      Müşteri: ${userInfo.name} ${userInfo.surname} | Sektör: ${userInfo.sector}
-      Genel Skor: ${total}/100 | Darboğaz: ${bottleneck}
-      Skorlar: Trafik: ${engineScores[1]}, Lead: ${engineScores[2]}, Satış: ${engineScores[3]}, Değer: ${engineScores[4]}
+      Müşteri Bilgileri: ${userInfo.name} ${userInfo.surname} | Sektör: ${userInfo.sector}
+      Genel Büyüme Skoru: ${total}/100 | Ana Darboğaz: ${bottleneck}
+      Detaylı Motor Skorları: Trafik: ${engineScores[1]}, Lead: ${engineScores[2]}, Satış: ${engineScores[3]}, Değer: ${engineScores[4]}
       
-      Lütfen bu verilere dayalı, uydurma olmayan, profesyonel bir analiz raporu hazırla.
+      Lütfen bu verilere dayalı, profesyonel, sektörel gerçekleri yansıtan ve uydurma olmayan bir analiz raporu hazırla.
     `;
 
     const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
@@ -42,7 +43,7 @@ export const handler = async (event) => {
     });
 
     const result = await response.json();
-    const detailedReport = result.candidates?.[0]?.content?.parts?.[0]?.text || "Analiz oluşturulamadı.";
+    const detailedReport = result.candidates?.[0]?.content?.parts?.[0]?.text || "Analiz raporu hazırlanamadı.";
 
     return {
       statusCode: 200,
