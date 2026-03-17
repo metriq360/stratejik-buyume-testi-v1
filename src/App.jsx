@@ -10,6 +10,7 @@ const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
 const firebaseConfigStr = typeof __firebase_config !== 'undefined' ? __firebase_config : null;
 const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
 
+// 20 Kritik Stratejik Soru (4 Motor x 5 Soru)
 const allQuestions = [
   { id: 't1', section: 1, text: 'Kanal Çeşitliliği: Google, Meta, SEO ve fiziksel kanalların en az 3\'ü aktif mi?' },
   { id: 't2', section: 1, text: 'Maliyet Bilinci: Aday başı maliyetinizi (CPA) kuruşu kuruşuna biliyor musunuz?' },
@@ -102,7 +103,7 @@ export default function App() {
         section: engineTitles[q.section]
       }));
 
-      // Bilgilendirme Adımları
+      // Laboratuvar Bilgilendirme Adımları
       setStatusMessage('Veriler laboratuvara aktarılıyor...');
       
       const reportRes = await fetch('/.netlify/functions/generate-report', {
@@ -134,12 +135,15 @@ export default function App() {
       }
 
       setStatusMessage('Mühür vuruluyor, yönlendiriliyorsunuz... 🚀');
+      
+      // YENİ REDIRECT URL
       setTimeout(() => {
-        window.location.href = "https://www.metriq360.tr/tesekkurler-test";
-      }, 800);
+        window.location.href = "https://www.metriq360.tr/buyume-testi-tesekkur";
+      }, 1000);
 
     } catch (err) {
-      window.location.href = "https://www.metriq360.tr/tesekkurler-test";
+      // Hata durumunda da yönlendirerek lead'i koruyoruz
+      window.location.href = "https://www.metriq360.tr/buyume-testi-tesekkur";
     }
   };
 
@@ -149,6 +153,7 @@ export default function App() {
     <div className="min-h-screen bg-[#fffaf5] flex flex-col items-center justify-center py-10 px-4 font-sans text-slate-900">
       <div className="w-full max-w-2xl bg-white rounded-[2.5rem] shadow-2xl border-t-[10px] border-[#f97316] overflow-hidden relative">
         
+        {/* LOGO ALANI */}
         <div className="p-10 text-center bg-white relative z-10">
           <h1 className="text-4xl md:text-5xl font-black text-[#1e293b] tracking-tighter uppercase mb-1">
             METR<span className="text-[#f97316]">IQ</span>360
@@ -164,23 +169,29 @@ export default function App() {
           </div>
         )}
 
+        {/* ADIM 1: GİRİŞ FORMU */}
         {currentStep === 'form' && (
           <div className="p-10 pt-2 space-y-6 animate-in fade-in duration-500 relative z-10">
             <form onSubmit={(e) => { e.preventDefault(); setCurrentStep('quiz'); }} className="space-y-4">
-              <input type="text" placeholder="Adınız" value={user.name} onChange={(e)=>setUser({...user, name: e.target.value})} className="w-full p-4 rounded-xl bg-white border border-slate-200 outline-none font-semibold focus:border-[#f97316] shadow-sm" required />
-              <input type="text" placeholder="Soyadınız" value={user.surname} onChange={(e)=>setUser({...user, surname: e.target.value})} className="w-full p-4 rounded-xl bg-white border border-slate-200 outline-none font-semibold focus:border-[#f97316] shadow-sm" required />
-              <input type="text" placeholder="Sektörünüz" value={user.sector} onChange={(e)=>setUser({...user, sector: e.target.value})} className="w-full p-4 rounded-xl bg-white border border-slate-200 outline-none font-semibold focus:border-[#f97316] shadow-sm" required />
-              <input type="email" placeholder="E-posta Adresiniz" value={user.email} onChange={(e)=>setUser({...user, email: e.target.value})} className="w-full p-4 rounded-xl bg-white border border-slate-200 outline-none font-semibold focus:border-[#f97316] shadow-sm" required />
+              <input type="text" placeholder="Adınız" value={user.name} onChange={(e)=>setUser({...user, name: e.target.value})} className="w-full p-4 rounded-xl bg-white border border-slate-200 outline-none font-semibold focus:border-[#f97316] shadow-sm transition" required />
+              <input type="text" placeholder="Soyadınız" value={user.surname} onChange={(e)=>setUser({...user, surname: e.target.value})} className="w-full p-4 rounded-xl bg-white border border-slate-200 outline-none font-semibold focus:border-[#f97316] shadow-sm transition" required />
+              <input type="text" placeholder="Sektörünüz" value={user.sector} onChange={(e)=>setUser({...user, sector: e.target.value})} className="w-full p-4 rounded-xl bg-white border border-slate-200 outline-none font-semibold focus:border-[#f97316] shadow-sm transition" required />
+              <input type="email" placeholder="E-posta Adresiniz" value={user.email} onChange={(e)=>setUser({...user, email: e.target.value})} className="w-full p-4 rounded-xl bg-white border border-slate-200 outline-none font-semibold focus:border-[#f97316] shadow-sm transition" required />
               <button type="submit" className="w-full bg-[#f97316] text-white font-black py-5 rounded-2xl shadow-lg uppercase tracking-widest text-lg transition transform hover:-translate-y-1">TESTE BAŞLA</button>
             </form>
           </div>
         )}
 
+        {/* ADIM 2: STRATEJİK ANALİZ (KOMPAKT SORULAR) */}
         {currentStep === 'quiz' && (
           <div className="p-8 pt-2 space-y-6 animate-in fade-in duration-500 relative z-10">
             {[1, 2, 3, 4].map(sid => (
               <div key={sid} className="space-y-4 border-b border-slate-50 last:border-0 pb-6">
                 <h3 className="text-lg font-black uppercase italic text-slate-800 flex items-center gap-2">
+                   {sid === 1 && <Globe size={20} className="text-[#f97316]"/>}
+                   {sid === 2 && <Zap size={20} className="text-[#f97316]"/>}
+                   {sid === 3 && <Target size={20} className="text-[#f97316]"/>}
+                   {sid === 4 && <Users size={20} className="text-[#f97316]"/>}
                    {engineTitles[sid]}
                 </h3>
                 {allQuestions.filter(q => q.section === sid).map((q, idx) => (
@@ -201,9 +212,11 @@ export default function App() {
           </div>
         )}
 
+        {/* ADIM 3: WHATSAPP & LABORATUVAR AŞAMASI */}
         {currentStep === 'whatsapp' && (
           <div className="p-8 pt-2 space-y-8 animate-in fade-in slide-in-from-right-4 duration-500 text-center relative z-10">
             
+            {/* KIRMIZI PANEL - NOKTA ATIŞI TEŞHİS */}
             <div className="bg-[#d32f2f] p-8 rounded-[2.5rem] shadow-xl text-center text-white relative">
               <div className="flex flex-col items-center gap-2">
                 <h2 className="text-2xl md:text-3xl font-black uppercase leading-tight tracking-tighter">🚨 ANA DARBOĞAZ TESPİT EDİLDİ!</h2>
@@ -215,11 +228,12 @@ export default function App() {
               </div>
             </div>
 
+            {/* SIRADA NE VAR? KUTUSU */}
             <div className="bg-white border-2 border-slate-100 rounded-[2.5rem] p-6 shadow-lg space-y-6 text-left">
               <h3 className="text-lg font-black text-[#1e293b] text-center">Sırada Ne Var? Lütfen Dikkatlice Okuyun 👇</h3>
               <div className="space-y-5">
                 <div className="flex items-start gap-3">
-                  <div className="w-10 h-10 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center shrink-0 border border-emerald-100"><Mail size={20} /></div>
+                  <div className="w-10 h-10 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center shrink-0 border border-emerald-100 shadow-sm"><Mail size={20} /></div>
                   <div>
                     <h4 className="font-black text-slate-800 uppercase text-[11px]">1. Ön Analiziniz E-postanıza Gönderiliyor</h4>
                     <p className="text-slate-500 text-[10px] font-medium leading-tight">İlk durum tespit raporunuz <strong className="text-orange-600">fikretkara55@gmail.com</strong> adresine otomatik iletilecektir.</p>
@@ -235,6 +249,7 @@ export default function App() {
               </div>
             </div>
 
+            {/* WHATSAPP GİRİŞİ */}
             <div className="space-y-4 text-left px-2">
               <label className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-400 pl-4">WHATSAPP NUMARANIZ</label>
               <form onSubmit={handleFinalSubmit} className="space-y-4">
@@ -246,7 +261,7 @@ export default function App() {
                   {loading ? (
                     <div className="flex items-center gap-3 animate-in fade-in zoom-in duration-300">
                       <Loader2 className="animate-spin" size={20} />
-                      <span className="text-sm">{statusMessage}</span>
+                      <span className="text-sm font-bold uppercase">{statusMessage}</span>
                     </div>
                   ) : (
                     <>BÜYÜME REÇETEMİ GÖNDER 🚀</>
