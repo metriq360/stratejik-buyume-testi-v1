@@ -48,9 +48,10 @@ export default function App() {
   const [loading, setLoading] = useState(false);
   const [showPopup, setShowPopup] = useState(false);
   const [statusMessage, setStatusMessage] = useState('');
-  
   const [initLoading, setInitLoading] = useState(true);
   const [error, setError] = useState('');
+  const [phoneError, setPhoneError] = useState('');
+  const [shakeInput, setShakeInput] = useState(false);
 
   useEffect(() => {
     const initFirebase = async () => {
@@ -98,11 +99,14 @@ export default function App() {
   const handleFinalSubmit = async (e, skipWhatsApp = false) => {
     if (e && e.preventDefault) e.preventDefault();
     if (!skipWhatsApp && !user.whatsapp) { 
-      setError('Lütfen WhatsApp numaranızı girin veya numara vermeden devam edin.'); 
+      setPhoneError('Raporunuzu iletebilmemiz için lütfen WhatsApp numaranızı girin.'); 
+      setShakeInput(true);
+      setTimeout(() => setShakeInput(false), 500); // 0.5 saniye sonra titreme sınıfını kaldır
       return; 
     }
     
     setError('');
+    setPhoneError('');
     setLoading(true);
     setShowPopup(true); // Popup'ı açıyoruz
 
@@ -266,6 +270,7 @@ export default function App() {
         {currentStep === 'whatsapp' && (
           <div className="p-6 md:p-8 pt-2 space-y-6 animate-in fade-in slide-in-from-right-4 duration-500 text-center relative z-10">
             
+            {/* ÜST KISIM SABİT: KIRMIZI PANEL - NOKTA ATIŞI TEŞHİS */}
             <div className="bg-[#d32f2f] p-6 md:p-8 rounded-[2rem] md:rounded-[2.5rem] shadow-xl text-center text-white relative">
               <div className="flex flex-col items-center gap-2">
                 <h2 className="text-xl md:text-3xl font-black uppercase leading-tight tracking-tighter">🚨 ANA DARBOĞAZ TESPİT EDİLDİ!</h2>
@@ -277,10 +282,12 @@ export default function App() {
               </div>
             </div>
 
+            {/* Raporunuzu Nasıl Alacaksınız? Kutusu */}
             <div className="bg-white border-2 border-slate-100 rounded-[2rem] p-6 shadow-sm space-y-6 text-left">
               <h3 className="text-lg font-black text-[#1e293b] italic flex items-center gap-2">
                 Raporunuzu Nasıl Alacaksınız? <span className="text-xl">👇</span>
               </h3>
+              
               <div className="space-y-5">
                 <div className="flex items-start gap-4">
                   <div className="w-10 h-10 bg-blue-50 text-blue-500 rounded-xl flex items-center justify-center shrink-0 border border-blue-100 shadow-sm">
@@ -292,6 +299,7 @@ export default function App() {
                     </p>
                   </div>
                 </div>
+
                 <div className="flex items-start gap-4">
                   <div className="w-10 h-10 bg-slate-100 text-slate-600 rounded-xl flex items-center justify-center shrink-0 border border-slate-200 shadow-sm">
                     <Phone size={18} />
@@ -305,6 +313,7 @@ export default function App() {
               </div>
             </div>
 
+            {/* Güvenlik Garantisi */}
             <div className="bg-[#059669] text-white p-5 rounded-2xl shadow-md flex items-center gap-4 text-left">
               <div className="bg-white/20 p-2 rounded-full shrink-0">
                 <ShieldAlert size={24} className="text-white" />
@@ -315,6 +324,7 @@ export default function App() {
               </div>
             </div>
 
+            {/* WHATSAPP GİRİŞİ VE BUTONLAR */}
             <div className="space-y-4 text-left pt-2">
               <label className="text-[11px] font-black italic uppercase text-slate-700 pl-2">
                 WHATSAPP NUMARANIZI BURAYA YAZIN:
@@ -323,17 +333,25 @@ export default function App() {
               <form onSubmit={(e) => handleFinalSubmit(e, false)} className="space-y-4">
                 <div className="space-y-2">
                   <div className="relative">
-                    <div className="absolute left-5 top-1/2 -translate-y-1/2 text-emerald-500">
+                    <div className={`absolute left-5 top-1/2 -translate-y-1/2 ${phoneError ? 'text-red-500' : 'text-emerald-500'}`}>
                       <MessageSquare size={22} />
                     </div>
                     <input 
                       type="tel" 
                       placeholder="05xx xxx xx xx" 
                       value={user.whatsapp} 
-                      onChange={(e)=>setUser({...user, whatsapp: e.target.value})} 
-                      className="w-full p-5 pl-14 rounded-2xl bg-white border-2 border-slate-200 outline-none font-black text-slate-700 text-lg shadow-sm focus:border-[#ea580c] transition" 
+                      onChange={(e) => {
+                        setUser({...user, whatsapp: e.target.value});
+                        if (phoneError) setPhoneError('');
+                      }} 
+                      className={`w-full p-5 pl-14 rounded-2xl bg-white border-2 outline-none font-black text-slate-700 text-lg shadow-sm transition ${phoneError ? 'border-red-500 bg-red-50' : 'border-slate-200 focus:border-[#ea580c]'} ${shakeInput ? 'animate-shake' : ''}`} 
                     />
                   </div>
+                  {phoneError && (
+                    <p className="text-[11px] text-red-600 font-bold mt-1 animate-in fade-in flex items-center justify-center gap-1">
+                      <AlertCircle size={14} /> {phoneError}
+                    </p>
+                  )}
                   <p className="text-[10px] text-slate-400 italic text-center">* Numaranız sadece raporu güvenli bir şekilde ulaştırmak için kullanılacaktır.</p>
                 </div>
                 
