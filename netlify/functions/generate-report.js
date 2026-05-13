@@ -41,8 +41,8 @@ export const handler = async (event) => {
       Lütfen bu verilere dayalı, profesyonel, sektörel gerçekleri yansıtan ve uydurma olmayan bir analiz raporu hazırla.
     `;
 
-    // Modeli daha stabil olan 1.5-flash sürümüne sabitledik
-    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
+    // SADECE GEMINI 2.5 FLASH KULLANILIYOR
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -51,7 +51,7 @@ export const handler = async (event) => {
       })
     });
 
-    // HATA DEDEKTİFİ 2: Google isteği reddetti mi? (Örn: API Key süresi dolmuşsa)
+    // HATA DEDEKTİFİ 2: Google isteği reddetti mi?
     if (!response.ok) {
         const errorData = await response.json();
         return {
