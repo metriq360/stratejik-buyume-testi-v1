@@ -12,7 +12,15 @@ export const handler = async (event) => {
     const { userInfo, total, engineScores, bottleneck } = data;
     const apiKey = process.env.GEMINI_API_KEY;
 
-    // AI Talimatları: 20 soru bazlı, sektörel odaklı, kurumsal ve imzası temiz.
+    // HATA DEDEKTİFİ 1: API Key Netlify'da var mı?
+    if (!apiKey || apiKey === "") {
+        return {
+            statusCode: 200,
+            headers,
+            body: JSON.stringify({ detailedReport: "SİSTEM HATASI: Netlify'da GEMINI_API_KEY eksik veya tanımlanmamış. Lütfen Netlify ayarlarını kontrol edin." })
+        };
+    }
+
     const systemPrompt = `
       Sen METRIQ360 markasının "Kıdemli Büyüme Mühendisi"sin. 
       Persona: Otoriter, stratejik, veriye dayalı konuşan bir uzmansın. 
@@ -33,7 +41,8 @@ export const handler = async (event) => {
       Lütfen bu verilere dayalı, profesyonel, sektörel gerçekleri yansıtan ve uydurma olmayan bir analiz raporu hazırla.
     `;
 
-    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
+    // Modeli daha stabil olan 1.5-flash sürümüne sabitledik
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -42,8 +51,18 @@ export const handler = async (event) => {
       })
     });
 
+    // HATA DEDEKTİFİ 2: Google isteği reddetti mi? (Örn: API Key süresi dolmuşsa)
+    if (!response.ok) {
+        const errorData = await response.json();
+        return {
+            statusCode: 200,
+            headers,
+            body: JSON.stringify({ detailedReport: `API REDDETTİ: ${errorData.error?.message || "Google AI bağlantı kurulamadı. API Key geçersiz olabilir."}` })
+        };
+    }
+
     const result = await response.json();
-    const detailedReport = result.candidates?.[0]?.content?.parts?.[0]?.text || "Analiz raporu hazırlanamadı.";
+    const detailedReport = result.candidates?.[0]?.content?.parts?.[0]?.text || "İçerik oluşturulamadı.";
 
     return {
       statusCode: 200,
@@ -51,6 +70,11 @@ export const handler = async (event) => {
       body: JSON.stringify({ detailedReport })
     };
   } catch (error) {
-    return { statusCode: 500, headers, body: JSON.stringify({ error: error.message }) };
+    // HATA DEDEKTİFİ 3: Kodda bir çökme olursa
+    return { 
+        statusCode: 200, 
+        headers, 
+        body: JSON.stringify({ detailedReport: `SUNUCU HATASI: ${error.message}` }) 
+    };
   }
 };
